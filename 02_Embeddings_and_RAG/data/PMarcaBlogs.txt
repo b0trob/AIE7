@@ -1,5 +1,4 @@
-﻿
-The Pmarca Blog Archives
+﻿The Pmarca Blog Archives
 (select posts from 2007-2009)
 Marc Andreessen
 copyright: Andreessen Horowitz
