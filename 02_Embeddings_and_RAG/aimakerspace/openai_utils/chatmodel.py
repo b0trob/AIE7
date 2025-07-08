@@ -16,7 +16,7 @@ class ChatOpenAI:
         if not isinstance(messages, list):
             raise ValueError("messages must be a list")
 
-        client = OpenAI()
+        client = OpenAI(api_key=self.openai_api_key)
         response = client.chat.completions.create(
             model=self.model_name, messages=messages, **kwargs
         )

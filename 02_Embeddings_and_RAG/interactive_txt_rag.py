@@ -1,40 +1,33 @@
-#!/usr/bin/env python3
-
 import os
 from rag_engine.core import RAGSystem
 
 def main():
-    pdf_path = "data/Anonymised-Web-and-Infrastructure-Penetration-Testing-Report_2019.pdf"
+    txt_path = "data/test-scan.txt"
     
-    if not os.path.exists(pdf_path):
-        print(f"PDF file not found: {pdf_path}")
-        print("Please make sure the PDF file is in the data/ directory.")
+    if not os.path.exists(txt_path):
+        print(f"Text file not found: {txt_path}")
+        print("Please make sure the text file is in the data/ directory.")
         return
     
     try:
-        rag_system = RAGSystem(pdf_path)
+        rag_system = RAGSystem(txt_path)
         print("✅ RAG system initialized successfully!")
         
-        print(f"\n{'='*60}")
-        print("🎯 INTERACTIVE Q&A SYSTEM")
-        print("✅ Now supports follow-up questions with conversation context!")
-        print(f"Ask questions about the {pdf_path.split('/')[-1]}!")
-        print("Type 'quit' or 'exit' to stop.")
-        print("Type 'clear' to clear conversation history.")
-        print(f"{'='*60}")
-        
+        stats = rag_system.get_database_stats()
+        print(f"\n📊 Database Statistics:")
+        print(f"   Total chunks: {stats['total_chunks']}")
+        print(f"   TXT pages: {stats['txt_metadata']['total_pages']}")
+        print(f"   Average chunk size: {sum(stats['chunk_sizes']) // len(stats['chunk_sizes'])} characters")
+
         while True:
             try:
                 question = input("\n❓ Your question: ").strip()
-                
                 if question.lower() in ['quit', 'exit', 'q']:
                     print("👋 Goodbye!")
                     break
-                
                 if question.lower() == 'clear':
                     rag_system.clear_conversation_history()
                     continue
-                
                 if not question:
                     print("Please enter a question.")
                     continue
@@ -47,17 +40,16 @@ def main():
                 print(f"\n📊 Sources: {result['context_sources']} chunks found")
                 print(f"🎯 Relevance scores: {[f'{s:.3f}' for s in result['relevance_scores']]}")
                 print(f"💬 Conversation length: {result['conversation_length']} exchanges")
-                
+
             except KeyboardInterrupt:
                 print("\n\n👋 Goodbye!")
                 break
             except Exception as e:
                 print(f"❌ Error: {e}")
                 print("Please try again with a different question.")
-    
+
     except Exception as e:
         print(f"❌ Failed to initialize RAG system: {e}")
-        print("Please check your OpenAI API key and internet connection.")
 
 if __name__ == "__main__":
     main()

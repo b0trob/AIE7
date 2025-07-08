@@ -1,7 +1,7 @@
 import os
 import fitz  # PyMuPDF
 import PyPDF2
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from pathlib import Path
 import json
 from datetime import datetime
