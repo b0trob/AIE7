@@ -31,7 +31,8 @@ class RAGSystem:
 
         elif file_path.endswith(".txt"):
             self.loader = DigestTxtFile(file_path)
-            self.plain_text = self.loader.extract_text()
+            self.documents = self.loader.load_documents()
+            self.metadata = self.loader.extract_metadata()
             self._load_and_process_txt()
 
         else:
@@ -39,9 +40,22 @@ class RAGSystem:
         
     def _load_and_process_txt(self):
         print(f"Loading TXT: {self.file_path}")
-        text = DigestTxtFile(self.file_path)
-        documents = text.load_documents()
-        chunks = TextSplitter().split_text(documents)
+        chunks = self.splitter.split_text(self.documents)
+
+        for i, chunk in tqdm(enumerate(chunks), total=len(chunks), desc="Creating embeddings", unit="chunk"):
+            try:
+                vector = self.embedding_model.get_embedding(chunk)
+                chunk_metadata = {
+                    **self.metadata,
+                    "chunk_id": i,
+                    "chunk_size": len(chunk),
+                    "total_chunks": len(chunks)
+                }
+                self.vector_db.insert(chunk, vector, chunk_metadata)
+            except Exception as e:
+                print(f"\nError processing chunk {i}: {e}")
+
+        print(f"Successfully processed {len(self.vector_db.vectors)} chunks")
 
     def _load_and_process_pdf(self):
         print(f"Loading PDF: {self.file_path}")

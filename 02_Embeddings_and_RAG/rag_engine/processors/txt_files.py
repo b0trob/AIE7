@@ -32,3 +32,22 @@ class DigestTxtFile:
     def load_documents(self):
         self.load()
         return self.documents
+
+    def extract_metadata(self) -> dict:
+        metadata = {
+            "file_path": self.path,
+            "file_type": "txt",
+            "encoding": self.encoding,
+            "total_documents": len(self.documents),
+            "total_characters": sum(len(doc) for doc in self.documents)
+        }
+        
+        if os.path.isfile(self.path):
+            stat = os.stat(self.path)
+            metadata.update({
+                "file_size": stat.st_size,
+                "created_time": stat.st_ctime,
+                "modified_time": stat.st_mtime
+            })
+        
+        return metadata

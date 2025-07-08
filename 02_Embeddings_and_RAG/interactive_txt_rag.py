@@ -12,12 +12,7 @@ def main():
     try:
         rag_system = RAGSystem(txt_path)
         print("✅ RAG system initialized successfully!")
-        
-        stats = rag_system.get_database_stats()
-        print(f"\n📊 Database Statistics:")
-        print(f"   Total chunks: {stats['total_chunks']}")
-        print(f"   TXT pages: {stats['txt_metadata']['total_pages']}")
-        print(f"   Average chunk size: {sum(stats['chunk_sizes']) // len(stats['chunk_sizes'])} characters")
+
 
         while True:
             try:
