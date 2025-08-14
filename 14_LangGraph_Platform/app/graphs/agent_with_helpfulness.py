@@ -50,7 +50,10 @@ def helpfulness_node(state: AgentState) -> Dict[str, Any]:
     final_response = state["messages"][-1]
 
     prompt_template = """
-  Given an initial query and a final response, determine if the final response is extremely helpful or not. Please indicate helpfulness with a 'Y' and unhelpfulness as an 'N'.
+  Given an initial query and a final response, determine if the final response is extremely helpful or not. Please indicate helpfulness with a 'Y' and unhelpfulness as an 'N' with a short explanation of why.
+  A response is helpful if it answers the question or provides a solution to the problem.
+  A response is unhelpful if it does not answer the question or provide a solution to the problem.
+  A response is unhelpful if it refers the user to a tool or a website.
 
   Initial Query:
   {initial_query}

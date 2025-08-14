@@ -53,10 +53,26 @@ Run the repository and complete the following:
 
 What is the purpose of the `chunk_overlap` parameter when using `RecursiveCharacterTextSplitter` to prepare documents for RAG, and what trade-offs arise as you increase or decrease its value?
 
+#### Answer:
+
+The purpose is to preserve context across boundaries, this helps prevent the loss of meaning that can occur when a relevant sentence or concept is split between two chunks this will improve the semantic relevance of the retrieved information
+
 #### ❓ Question:
 
 Your retriever is configured with `search_kwargs={"k": 5}`. How would adjusting `k` likely affect RAGAS metrics such as Context Precision and Context Recall in practice, and why?
 
+#### Answer:
+
+For context precision, if I increase the number I will be asking the retriever to return more documents, this will put some noise on the retrieve data, what I mean by that is that with a higher number the chance of getting documents not that relevant will increase, therefore the context precision will decrease because this meassure how many documents where relevant.
+
+For context recall will be the opossite if i change that to a higher number i am casting a wider net so it is more likely to get all the relevant documents that exist.
+
 #### ❓ Question:
 
 Compare the `agent` and `agent_helpful` assistants defined in `langgraph.json`. Where does the helpfulness evaluator fit in the graph, and under what condition should execution route back to the agent vs. terminate?
+
+#### Answer:
+
+The helpfulness evaluator will determine if an answer is helpful or not based entirely in the prompt passed, if we leave it as it is, i.e: as it came in the pull, it will mark almost everything helpful because the only requirement to mark it helpful is to have some answer, no matter the context, quote (this comes from one of the runs on langgraph): "Y - The response is extremely helpful because it clearly explains the limitation of the assistant, provides relevant information about the IP, and offers a practical next step by suggesting a tool (Nmap) and offering further guidance." . But in my opinion is not that helpful at all. This is so interesting to test.
+
+The execution route will terminate or route back to the agent based on the prompt as I explained above, those are the instructions for the model that it will make it perform a better or most suited reasoning.

@@ -16,5 +16,4 @@ except Exception:
     # dotenv not installed or .env not found; continue silently
     pass
 
-__all__ = ["graphs", "models", "state", "tools", "rag"]
-
+__all__ = ["graphs", "models", "state", "tools", "rag", "mcp_server"]
