@@ -17,7 +17,7 @@ from a2a.utils import (
 )
 from a2a.utils.errors import ServerError
 
-from app.agent import Agent
+from app.split_agent import SplitAgent
 
 
 logging.basicConfig(level=logging.INFO)
@@ -28,7 +28,7 @@ class GeneralAgentExecutor(AgentExecutor):
     """General Purpose AgentExecutor with A2A Protocol Support."""
 
     def __init__(self):
-        self.agent = Agent()
+        self.agent = SplitAgent()
 
     async def execute(
         self,

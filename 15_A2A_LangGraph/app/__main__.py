@@ -21,6 +21,7 @@ from a2a.types import (
 from dotenv import load_dotenv
 
 from app.agent import Agent
+from app.split_agent import SplitAgent
 from app.agent_executor import GeneralAgentExecutor
 
 
@@ -70,12 +71,12 @@ def main(host, port):
             ),
         ]
         agent_card = AgentCard(
-            name='General Purpose Agent',
-            description='A helpful AI assistant with web search, academic paper search, and document retrieval capabilities',
+            name='Kevin Wendell Crumb Agent',
+            description='An AI assistant with multiple personalities who can access web search, academic papers, and documents',
             url=f'http://{host}:{port}/',
             version='1.0.0',
-            default_input_modes=Agent.SUPPORTED_CONTENT_TYPES,
-            default_output_modes=Agent.SUPPORTED_CONTENT_TYPES,
+            default_input_modes=SplitAgent.SUPPORTED_CONTENT_TYPES,
+            default_output_modes=SplitAgent.SUPPORTED_CONTENT_TYPES,
             capabilities=capabilities,
             skills=skills,
         )

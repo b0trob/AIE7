@@ -87,9 +87,87 @@ Do this by creating a Simple Agent that can make API calls to the 🤖Agent Node
 
 What are the core components of an `AgentCard`?
 
+### Answer #1:
+
+Those are:
+
+- Its capabilities and the input/output formats
+- Description, name and protocol version
+- Skills, which lists what the agent can do
+
+And this is the agent card for the agent used in the advanced build:
+
+```
+{
+  "capabilities": {
+    "pushNotifications": true,
+    "streaming": true
+  },
+  "defaultInputModes": [
+    "text",
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "text",
+    "text/plain"
+  ],
+  "description": "An AI assistant with multiple personalities who can access web search, academic papers, and documents",
+  "name": "Kevin Wendell Crumb Agent",
+  "preferredTransport": "JSONRPC",
+  "protocolVersion": "0.3.0",
+  "skills": [
+    {
+      "description": "Search the web for current information",
+      "examples": [
+        "What are the latest news about AI?"
+      ],
+      "id": "web_search",
+      "name": "Web Search Tool",
+      "tags": [
+        "search",
+        "web",
+        "internet"
+      ]
+    },
+    {
+      "description": "Search for academic papers on arXiv",
+      "examples": [
+        "Find recent papers on large language models"
+      ],
+      "id": "arxiv_search",
+      "name": "Academic Paper Search",
+      "tags": [
+        "research",
+        "papers",
+        "academic"
+      ]
+    },
+    {
+      "description": "Search through loaded documents for specific information",
+      "examples": [
+        "What do the policy documents say about student loans?"
+      ],
+      "id": "rag_search",
+      "name": "Document Retrieval",
+      "tags": [
+        "documents",
+        "rag",
+        "retrieval"
+      ]
+    }
+  ],
+  "url": "http://localhost:10000/",
+  "version": "1.0.0"
+}
+```
+
 ### ❓ Question #2:
 
 Why is A2A (and other such protocols) important in your own words?
+
+### Answer #2: 
+
+As almost every protocol out there, this fixes a lot of communication problems by defining the rules (as any protocol will do) that a piece of software/hardware must use in order to communicate. It is important because naturally it will make things easier, but in this LLM world where we are adding a lot of moving parts a protocol will worth the extra setup, I mean all protocols are useful, unless the thing was made by Microsoft.
 
 ### 🚧 Advanced Build:
 

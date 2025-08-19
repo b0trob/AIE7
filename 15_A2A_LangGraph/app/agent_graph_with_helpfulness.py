@@ -12,7 +12,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, ToolMessage
 
 
 class AgentState(TypedDict):
@@ -59,7 +59,7 @@ def helpfulness_node(state: Dict[str, Any], model) -> Dict[str, Any]:
   - Be complete and address the user's specific need
   - Use appropriate tools when necessary
   
-  Please indicate helpfulness with a 'Y' and unhelpfulness as an 'N'.
+  Please indicate helpfulness with a 'Y' and unhelpfulness as an 'N', and a short explanation of why.
 
   Initial Query:
   {initial_query}
@@ -96,6 +96,42 @@ def helpfulness_decision(state: Dict[str, Any]):
     return "continue"
 
 
+def final_response_node(state: AgentState, model) -> Dict[str, Any]:
+    """Generate final structured response after tool execution."""
+    from app.agent import ResponseFormat
+    
+    try:
+        # Apply response format to the model
+        model_with_format = model.with_structured_output(
+            ResponseFormat,
+            method="json_schema",
+            include_raw=False
+        )
+        
+        # Add system and format instructions
+        formatted_messages = [("system", f"{system_instruction}\n\n{format_instruction}")] + state["messages"]
+        structured_response = model_with_format.invoke(formatted_messages)
+        
+        return {
+            "messages": [AIMessage(content=structured_response.message)],
+            "structured_response": structured_response
+        }
+    except Exception as e:
+        print(f"Final response generation failed: {e}")
+        # If structured output fails, create a basic response
+        return {
+            "messages": [AIMessage(content="I have processed your request using the available tools. Here is what I found.")],
+            "structured_response": ResponseFormat(status="completed", message="I have processed your request using the available tools. Here is what I found.")
+        }
+
+def route_after_action(state: Dict[str, Any]):
+    """Route to final response generation after tool execution."""
+    last_message = state["messages"][-1]
+    if isinstance(last_message, ToolMessage):
+        return "final_response"
+    return "helpfulness"
+
+
 def build_agent_graph_with_helpfulness(model, system_instruction, format_instruction, checkpointer=None):
     """Build an agent graph with an auxiliary helpfulness evaluation subgraph."""
     from app.tools import get_tool_belt
@@ -126,22 +162,52 @@ def build_agent_graph_with_helpfulness(model, system_instruction, format_instruc
                     "messages": [response],
                     "structured_response": structured_response
                 }
-            except:
+            except Exception as e:
                 # If structured output fails, just return the response
+                print(f"Structured output failed: {e}")
                 return {"messages": [response]}
         else:
-            # If there are tool calls, just return the response
+            # If there are tool calls, we need to wait for the final response
+            # Don't set structured_response yet - it will be set after tools are executed
             return {"messages": [response]}
     
     def _helpfulness_node(state: AgentState) -> Dict[str, Any]:
         """Wrapper to pass model to helpfulness_node."""
-        return helpfulness_node(state, model)
+        # Before evaluating helpfulness, try to extract structured response
+        try:
+            # Apply response format to the model
+            model_with_format = model.with_structured_output(
+                ResponseFormat,
+                method="json_schema",
+                include_raw=False
+            )
+            
+            # Add system and format instructions
+            formatted_messages = [("system", f"{system_instruction}\n\n{format_instruction}")] + state["messages"]
+            structured_response = model_with_format.invoke(formatted_messages)
+            
+            # Get helpfulness evaluation
+            helpfulness_result = helpfulness_node(state, model)
+            
+            return {
+                "messages": [AIMessage(content=f"HELPFULNESS:{helpfulness_result['messages'][0].content}")],
+                "structured_response": structured_response
+            }
+        except Exception as e:
+            print(f"Helpfulness structured output failed: {e}")
+            # If structured output fails, fall back to default helpfulness evaluation
+            return helpfulness_node(state, model)
+    
+    def _final_response_node(state: AgentState) -> Dict[str, Any]:
+        """Wrapper to pass model to final_response_node."""
+        return final_response_node(state, model)
     
     graph = StateGraph(AgentState)
     tool_node = ToolNode(get_tool_belt())
     
     graph.add_node("agent", _call_model)
     graph.add_node("action", tool_node)
+    graph.add_node("final_response", _final_response_node)
     graph.add_node("helpfulness", _helpfulness_node)
     graph.set_entry_point("agent")
     
@@ -151,10 +217,19 @@ def build_agent_graph_with_helpfulness(model, system_instruction, format_instruc
         {"action": "action", "helpfulness": "helpfulness"},
     )
     graph.add_conditional_edges(
+        "action",
+        route_after_action,
+        {"final_response": "final_response", "helpfulness": "helpfulness"},
+    )
+    graph.add_conditional_edges(
+        "final_response",
+        helpfulness_decision,
+        {"continue": "agent", "end": END, END: END},
+    )
+    graph.add_conditional_edges(
         "helpfulness",
         helpfulness_decision,
         {"continue": "agent", "end": END, END: END},
     )
-    graph.add_edge("action", "agent")
     
     return graph.compile(checkpointer=checkpointer)
